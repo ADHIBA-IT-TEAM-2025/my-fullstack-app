@@ -9,8 +9,17 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        // Checkout repo (SCM requires Pipeline script from SCM job config)
-        checkout scm
+        // Wipe workspace first to avoid config.lock issues
+        deleteDir()
+        
+        // Checkout Git repo
+        checkout([$class: 'GitSCM',
+          branches: [[name: '*/main']], // change branch if needed
+          doGenerateSubmoduleConfigurations: false,
+          extensions: [],
+          userRemoteConfigs: [[url: 'https://github.com/ADHIBA-IT-TEAM-2025/my-docker-app.git']]]
+        )
+
         script {
           // Get short commit hash for tagging
           SHORT_COMMIT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
@@ -37,21 +46,17 @@ pipeline {
         }
       }
     }
-checkout([$class: 'GitSCM',
-  branches: [[name: '*/main']],
-  doGenerateSubmoduleConfigurations: false,
-  extensions: [[$class: 'WipeWorkspace']], // <-- cleans workspace first
-  userRemoteConfigs: [[url: 'https://github.com/ADHIBA-IT-TEAM-2025/my-docker-app.git']]
-])
 
     stage('Docker Login & Push') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           // Login using Jenkins credentials
           sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+          
           // Push backend images
           sh "docker push ${env.BACKEND_IMAGE}:${env.IMAGE_TAG}"
           sh "docker push ${env.BACKEND_IMAGE}:latest"
+          
           // Push frontend images
           sh "docker push ${env.FRONTEND_IMAGE}:${env.IMAGE_TAG}"
           sh "docker push ${env.FRONTEND_IMAGE}:latest"
@@ -64,6 +69,12 @@ checkout([$class: 'GitSCM',
     always {
       // Logout from Docker Hub
       sh 'docker logout || true'
+    }
+    success {
+      echo '✅ Build and push completed successfully!'
+    }
+    failure {
+      echo '❌ Build or deploy failed!'
     }
   }
 }
