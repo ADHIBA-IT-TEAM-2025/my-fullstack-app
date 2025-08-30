@@ -7,6 +7,13 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                // This makes Jenkins pull your GitHub repo into the workspace
+                checkout scm
+            }
+        }
+
         stage('Build Backend') {
             steps {
                 dir('backend') {
@@ -22,7 +29,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Docker Login') {
             steps {
