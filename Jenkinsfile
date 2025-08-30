@@ -2,10 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USER = 'your_dockerhub_username'
-        DOCKER_HUB_PASS = 'your_dockerhub_token'
-        BACKEND_IMAGE = 'your_dockerhub_username/backend'
-        FRONTEND_IMAGE = 'your_dockerhub_username/frontend'
+        BACKEND_IMAGE = 'sanjeev26082002/backend'
+        FRONTEND_IMAGE = 'sanjeev26082002/frontend'
     }
 
     stages {
@@ -27,7 +25,11 @@ pipeline {
 
         stage('Docker Login') {
             steps {
-                sh 'echo $DOCKER_HUB_PASS | docker login -u $DOCKER_HUB_USER --password-stdin'
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', 
+                                                 usernameVariable: 'DOCKER_HUB_USER', 
+                                                 passwordVariable: 'DOCKER_HUB_PASS')]) {
+                    sh 'echo $DOCKER_HUB_PASS | docker login -u $DOCKER_HUB_USER --password-stdin'
+                }
             }
         }
 
