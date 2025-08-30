@@ -9,7 +9,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        // Checkout repo (scm requires Pipeline script from SCM job config)
+        // Checkout repo (SCM requires Pipeline script from SCM job config)
         checkout scm
         script {
           // Get short commit hash for tagging
@@ -37,21 +37,26 @@ pipeline {
         }
       }
     }
+
     stage('Docker Login & Push') {
       steps {
-      withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-    sh "docker push ${env.BACKEND_IMAGE}:${env.IMAGE_TAG}"
-    sh "docker push ${env.BACKEND_IMAGE}:latest"
-    sh "docker push ${env.FRONTEND_IMAGE}:${env.IMAGE_TAG}"
-    sh "docker push ${env.FRONTEND_IMAGE}:latest"
-}
+        withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+          // Login using Jenkins credentials
+          sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+          // Push backend images
+          sh "docker push ${env.BACKEND_IMAGE}:${env.IMAGE_TAG}"
+          sh "docker push ${env.BACKEND_IMAGE}:latest"
+          // Push frontend images
+          sh "docker push ${env.FRONTEND_IMAGE}:${env.IMAGE_TAG}"
+          sh "docker push ${env.FRONTEND_IMAGE}:latest"
+        }
       }
     }
   }
 
   post {
     always {
+      // Logout from Docker Hub
       sh 'docker logout || true'
     }
   }
