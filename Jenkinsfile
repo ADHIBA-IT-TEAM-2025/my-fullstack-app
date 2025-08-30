@@ -37,6 +37,12 @@ pipeline {
         }
       }
     }
+checkout([$class: 'GitSCM',
+  branches: [[name: '*/main']],
+  doGenerateSubmoduleConfigurations: false,
+  extensions: [[$class: 'WipeWorkspace']], // <-- cleans workspace first
+  userRemoteConfigs: [[url: 'https://github.com/ADHIBA-IT-TEAM-2025/my-docker-app.git']]
+])
 
     stage('Docker Login & Push') {
       steps {
