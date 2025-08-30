@@ -2,8 +2,8 @@ pipeline {
   agent any
 
   environment {
-    BACKEND_IMAGE  = 'YOUR_DOCKER_USERNAME/backend'
-    FRONTEND_IMAGE = 'YOUR_DOCKER_USERNAME/frontend'
+    BACKEND_IMAGE  = 'sanjeev26082002/backend'
+    FRONTEND_IMAGE = 'sanjeev26082002/frontend'
   }
 
   stages {
@@ -40,13 +40,13 @@ pipeline {
 
     stage('Docker Login & Push') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-          sh "docker push ${env.BACKEND_IMAGE}:${env.IMAGE_TAG}"
-          sh "docker push ${env.BACKEND_IMAGE}:latest"
-          sh "docker push ${env.FRONTEND_IMAGE}:${env.IMAGE_TAG}"
-          sh "docker push ${env.FRONTEND_IMAGE}:latest"
-        }
+      withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+    sh "docker push ${env.BACKEND_IMAGE}:${env.IMAGE_TAG}"
+    sh "docker push ${env.BACKEND_IMAGE}:latest"
+    sh "docker push ${env.FRONTEND_IMAGE}:${env.IMAGE_TAG}"
+    sh "docker push ${env.FRONTEND_IMAGE}:latest"
+}
       }
     }
   }
